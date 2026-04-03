@@ -12,27 +12,23 @@
         .star-btn { position: absolute; top: 20px; right: 20px; font-size: 28px; cursor: pointer; color: #ddd; transition: 0.2s; border: none; background: none; outline: none; }
         .star-btn.active { color: #f1c40f; }
         
+        /* 發音按鈕 */
+        .speaker-btn { font-size: 20px; cursor: pointer; color: #3498db; background: #ebf5ff; border: none; border-radius: 50%; width: 40px; height: 40px; margin-top: 10px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .speaker-btn:hover { background: #3498db; color: white; }
+
         #mode-label { font-size: 12px; color: #bbb; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         .pos { font-size: 14px; color: #9b59b6; font-weight: bold; margin-bottom: 5px; height: 20px; }
         
-        /* 增加切換時的透明度動畫 */
-        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; min-height: 50px; transition: opacity 0.15s ease; }
+        #word-display { font-size: 36px; color: #2c3e50; margin: 5px 0; min-height: 50px; transition: opacity 0.15s ease; }
+        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.15s ease; margin-bottom: 25px; font-weight: 500; }
         
-        /* 翻譯顯示區域 */
-        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.15s ease; margin-bottom: 30px; font-weight: 500; }
-        
-        /* 當父層有 show-answer 類別時才顯示翻譯 */
         .show-answer #ans-display { opacity: 1 !important; }
-        
-        /* 切換中讓文字消失的類別 */
-        .switching #word-display, .switching #ans-display { opacity: 0 !important; }
+        .switching #word-display, .switching #ans-display, .switching .speaker-btn { opacity: 0 !important; }
 
         .button-group { display: flex; flex-direction: column; gap: 12px; }
         button.action { padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
         .primary { background: #3498db; color: white; }
-        .primary:active { background: #2980b9; }
         .secondary { background: #2ecc71; color: white; }
-        .secondary:active { background: #27ae60; }
         
         .mode-btn { background: #f8f9fa; color: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; cursor: pointer; padding: 8px; }
     </style>
@@ -47,9 +43,10 @@
         <div class="pos" id="pos-display"></div>
         <h1 id="word-display">載入中...</h1>
         <div id="ans-display"></div>
+        <button class="speaker-btn" onclick="speakWord()">📢</button>
     </div>
 
-    <div class="button-group">
+    <div class="button-group" style="margin-top: 20px;">
         <button class="action primary" onclick="showAnswer()">看答案</button>
         <button class="action secondary" onclick="nextWord()">下一題 (隨機)</button>
         <button class="mode-btn" onclick="toggleMode()">切換 英中 / 中英</button>
@@ -77,13 +74,11 @@
             const response = await fetch('words.json');
             if (!response.ok) throw new Error();
             const data = await response.json();
-            
             const starredMap = getStoredStars();
             myWords = data.map(w => ({
                 ...w,
                 starred: starredMap[w.en] !== undefined ? starredMap[w.en] : (w.starred || false)
             }));
-            
             nextWord();
         } catch (e) {
             document.getElementById('word-display').innerText = "載入失敗";
@@ -94,63 +89,18 @@
         document.getElementById('main-card').classList.add('show-answer');
     }
 
+    // 發音功能
+    function speakWord() {
+        const word = myWords[currentIndex].en;
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = word;
+        msg.lang = 'en-US'; // 設定為美式英文
+        msg.rate = 0.9;      // 語速稍微慢一點點比較清晰
+        window.speechSynthesis.speak(msg);
+    }
+
     function nextWord() {
         if (myWords.length === 0) return;
-
         const card = document.getElementById('main-card');
-        
-        // 1. 先隱藏答案，並啟動「切換中」模式讓文字變透明
-        card.classList.remove('show-answer');
-        card.classList.add('switching');
-
-        // 2. 延遲 200 毫秒 (0.2 秒) 等透明動畫完成後再換字
-        setTimeout(() => {
-            let pool = [];
-            myWords.forEach((w, i) => {
-                pool.push(i);
-                if (w.starred) for(let j=0; j<4; j++) pool.push(i);
-            });
-
-            currentIndex = pool[Math.floor(Math.random() * pool.length)];
-            updateDisplay();
-
-            // 3. 換好字後，移除「切換中」模式，讓新單字優雅地顯現
-            setTimeout(() => {
-                card.classList.remove('switching');
-            }, 50);
-        }, 200); 
-    }
-
-    function updateDisplay() {
-        const item = myWords[currentIndex];
-        document.getElementById('pos-display').innerText = item.pos || "";
-        document.getElementById('star').classList.toggle('active', item.starred);
-        
-        if (isEnToZh) {
-            document.getElementById('word-display').innerText = item.en;
-            document.getElementById('ans-display').innerText = item.zh;
-        } else {
-            document.getElementById('word-display').innerText = item.zh;
-            document.getElementById('ans-display').innerText = item.en;
-        }
-    }
-
-    function toggleStar() {
-        const item = myWords[currentIndex];
-        item.starred = !item.starred;
-        document.getElementById('star').classList.toggle('active', item.starred);
-        saveStar(item.en, item.starred);
-    }
-
-    function toggleMode() {
-        isEnToZh = !isEnToZh;
-        document.getElementById('mode-label').innerText = isEnToZh ? "英翻中模式" : "中翻英模式";
-        updateDisplay();
-        document.getElementById('main-card').classList.remove('show-answer');
-    }
-
-    loadWords();
-</script>
-</body>
-</html>
+        card.classList.
 
