@@ -1,5 +1,4 @@
-[
-  { "en": "abnormal", "zh": "不正常的", "pos": "adj.", "starred": false },
+[{ "en": "abnormal", "zh": "不正常的", "pos": "adj.", "starred": false },
   { "en": "abrupt", "zh": "突然的；唐突的", "pos": "adj.", "starred": false },
   { "en": "abstract", "zh": "抽象的", "pos": "adj./n.", "starred": false },
   { "en": "absurd", "zh": "不合理的；荒謬的", "pos": "adj.", "starred": false },
@@ -194,6 +193,4 @@
   { "en": "ultimate", "zh": "最後的", "pos": "adj.", "starred": false },
   { "en": "versatile", "zh": "多功能的", "pos": "adj.", "starred": false },
   { "en": "viable", "zh": "切實可行的", "pos": "adj.", "starred": false },
-  { "en": "volatile", "zh": "易變的", "pos": "adj.", "starred": false }
-]
- 
+  { "en": "volatile", "zh": "易變的", "pos": "adj.", "starred": false }]
