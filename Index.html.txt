@@ -1,19 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>我的多益 App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的多益背單字</title>
     <style>
-        body { font-family: Arial; text-align: center; padding: 50px; background-color: #f0f2f5; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
-        .word { font-size: 48px; color: #1a73e8; }
-        .hint { color: #555; font-size: 20px; margin-top: 20px; cursor: pointer; }
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f7f6; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        .word { font-size: 40px; color: #2c3e50; margin-bottom: 20px; }
+        .ans { font-size: 22px; color: #e67e22; height: 30px; margin-bottom: 30px; visibility: hidden; }
+        button { background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-bottom: 10px; }
+        button:hover { background: #2980b9; }
+        .mode-btn { background: #95a5a6; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="word">Accomplish</div>
-        <div class="hint" onclick="this.innerText = this.innerText === '點擊看翻譯' ? '完成；實現' : '點擊看翻譯'">點擊看翻譯</div>
-    </div>
+
+<div class="card">
+    <div id="mode-label" style="font-size: 12px; color: #999;">目前模式：英翻中</div>
+    <div class="word" id="word-display">Loading...</div>
+    <div class="ans" id="ans-display">翻譯載入中</div>
+    
+    <button onclick="showAns()">看答案</button>
+    <button onclick="nextWord()">下一題 (隨機)</button>
+    <button class="mode-btn" onclick="toggleMode()">切換 英中/中英 模式</button>
+</div>
+
+<script>
+    // 【重點】在這裡增加你的新單字！
+    const myWords = [
+        { en: "Accomplish", zh: "完成；實現" },
+        { en: "Mandatory", zh: "強制性的" },
+        { en: "Incentive", zh: "誘因" },
+        { en: "Execute", zh: "執行" },
+        { en: "Quarterly", zh: "每季的" }
+    ];
+
+    let currentIndex = 0;
+    let isEnToZh = true;
+
+    function nextWord() {
+        currentIndex = Math.floor(Math.random() * myWords.length);
+        document.getElementById('ans-display').style.visibility = "hidden";
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        const item = myWords[currentIndex];
+        if (isEnToZh) {
+            document.getElementById('word-display').innerText = item.en;
+            document.getElementById('ans-display').innerText = item.zh;
+        } else {
+            document.getElementById('word-display').innerText = item.zh;
+            document.getElementById('ans-display').innerText = item.en;
+        }
+    }
+
+    function showAns() {
+        document.getElementById('ans-display').style.visibility = "visible";
+    }
+
+    function toggleMode() {
+        isEnToZh = !isEnToZh;
+        document.getElementById('mode-label').innerText = isEnToZh ? "目前模式：英翻中" : "目前模式：中翻英";
+        updateDisplay();
+    }
+
+    // 網頁打開後先顯示第一題
+    nextWord();
+</script>
+
 </body>
 </html>
