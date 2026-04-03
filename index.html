@@ -3,40 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多益高階單字機</title>
+    <title>高階商務單字練習</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
         .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; position: relative; }
-        
-        /* 星號按鈕樣式 */
-        .star-btn { position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: #ccc; transition: 0.2s; }
+        .star-btn { position: absolute; top: 20px; right: 20px; font-size: 28px; cursor: pointer; color: #ddd; transition: 0.2s; border: none; background: none; }
         .star-btn.active { color: #f1c40f; }
-
-        .pos { font-size: 14px; color: #9b59b6; font-weight: bold; margin-bottom: 5px; text-transform: lowercase; }
-        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; }
-        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: 0.3s; margin-bottom: 20px; }
+        #mode-label { font-size: 12px; color: #bbb; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .pos { font-size: 14px; color: #9b59b6; font-weight: bold; margin-bottom: 5px; }
+        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; min-height: 50px; }
+        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: 0.3s; margin-bottom: 30px; font-weight: 500; }
         .show-answer #ans-display { opacity: 1; }
-
-        .button-group { display: flex; flex-direction: column; gap: 10px; }
-        button { padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .button-group { display: flex; flex-direction: column; gap: 12px; }
+        button.action { padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .primary { background: #3498db; color: white; }
         .secondary { background: #2ecc71; color: white; }
-        .mode-btn { background: #eee; color: #777; font-size: 12px; }
+        .mode-btn { background: #f8f9fa; color: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; cursor: pointer; padding: 8px; }
     </style>
 </head>
 <body>
 
 <div class="card" id="main-card">
-    <div id="star" class="star-btn" onclick="toggleStar()">★</div>
-    <div id="mode-label" style="font-size: 12px; color: #bbb; margin-bottom: 10px;">英翻中模式</div>
+    <button id="star" class="star-btn" onclick="toggleStar()">★</button>
+    <div id="mode-label">英翻中模式</div>
     
-    <div class="pos" id="pos-display">adj.</div>
-    <h1 id="word-display">載入中...</h1>
-    <div id="ans-display">翻譯</div>
+    <div class="word-box">
+        <div class="pos" id="pos-display">-</div>
+        <h1 id="word-display">載入中...</h1>
+        <div id="ans-display">翻譯載入中</div>
+    </div>
 
     <div class="button-group">
-        <button class="primary" onclick="document.getElementById('main-card').classList.add('show-answer')">看答案</button>
-        <button class="secondary" onclick="nextWord()">下一個單字</button>
+        <button class="action primary" onclick="document.getElementById('main-card').classList.add('show-answer')">看答案</button>
+        <button class="action secondary" onclick="nextWord()">下一題 (隨機)</button>
         <button class="mode-btn" onclick="toggleMode()">切換 英中 / 中英</button>
     </div>
 </div>
@@ -46,31 +45,51 @@
     let currentIndex = 0;
     let isEnToZh = true;
 
+    // 從瀏覽器記憶體載入星號狀態
+    function getStoredStars() {
+        const saved = localStorage.getItem('toeic_stars');
+        return saved ? JSON.parse(saved) : {};
+    }
+
+    // 儲存星號狀態到瀏覽器
+    function saveStar(wordEn, isStarred) {
+        const stars = getStoredStars();
+        stars[wordEn] = isStarred;
+        localStorage.setItem('toeic_stars', JSON.stringify(stars));
+    }
+
     async function loadWords() {
         try {
+            // 注意：這裡確保抓取的是同層級的 words.json
             const response = await fetch('words.json');
-            myWords = await response.json();
-            // 確保每個單字都有 starred 屬性
-            myWords = myWords.map(w => ({...w, starred: w.starred || false}));
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            
+            const starredMap = getStoredStars();
+            myWords = data.map(w => ({
+                ...w,
+                starred: starredMap[w.en] !== undefined ? starredMap[w.en] : (w.starred || false)
+            }));
+            
             nextWord();
-        } catch (e) { document.getElementById('word-display').innerText = "載入失敗"; }
+        } catch (e) {
+            document.getElementById('word-display').innerText = "載入失敗";
+            document.getElementById('ans-display').innerText = "請檢查 words.json 位置";
+            document.getElementById('ans-display').style.opacity = 1;
+        }
     }
 
     function nextWord() {
         if (myWords.length === 0) return;
 
-        // 權重隨機算法：有星號的單字在陣列中重複出現 5 次
-        let weightedPool = [];
-        myWords.forEach((word, index) => {
-            weightedPool.push(index); // 基本的 1 次
-            if (word.starred) {
-                for(let i=0; i<4; i++) weightedPool.push(index); // 額外加 4 次，共 5 倍機率
-            }
+        // 權重隨機：有星號的單字抽中機率提高 5 倍
+        let pool = [];
+        myWords.forEach((w, i) => {
+            pool.push(i);
+            if (w.starred) for(let j=0; j<4; j++) pool.push(i);
         });
 
-        const randomIndex = weightedPool[Math.floor(Math.random() * weightedPool.length)];
-        currentIndex = randomIndex;
-
+        currentIndex = pool[Math.floor(Math.random() * pool.length)];
         document.getElementById('main-card').classList.remove('show-answer');
         updateDisplay();
     }
@@ -90,10 +109,10 @@
     }
 
     function toggleStar() {
-        myWords[currentIndex].starred = !myWords[currentIndex].starred;
-        document.getElementById('star').classList.toggle('active', myWords[currentIndex].starred);
-        // 注意：目前的星號狀態只存在於網頁開啟期間，刷新後會回到 json 的原始狀態
-        console.log("單字星號狀態已更新", myWords[currentIndex]);
+        const item = myWords[currentIndex];
+        item.starred = !item.starred;
+        document.getElementById('star').classList.toggle('active', item.starred);
+        saveStar(item.en, item.starred);
     }
 
     function toggleMode() {
