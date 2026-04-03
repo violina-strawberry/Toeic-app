@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>我的多益 App</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; background-color: #f0f2f5; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
+        .word { font-size: 48px; color: #1a73e8; }
+        .hint { color: #555; font-size: 20px; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="word">Accomplish</div>
+        <div class="hint" onclick="this.innerText = this.innerText === '點擊看翻譯' ? '完成；實現' : '點擊看翻譯'">點擊看翻譯</div>
+    </div>
+</body>
+</html>
