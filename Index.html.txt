@@ -3,72 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的多益背單字</title>
+    <title>多益單字練習器 - JSON 版</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f7f6; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        .word { font-size: 40px; color: #2c3e50; margin-bottom: 20px; }
-        .ans { font-size: 22px; color: #e67e22; height: 30px; margin-bottom: 30px; visibility: hidden; }
-        button { background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-bottom: 10px; }
-        button:hover { background: #2980b9; }
-        .mode-btn { background: #95a5a6; }
+        /* 基礎樣式設計 */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        #mode-label {
+            font-size: 13px;
+            color: #95a5a6;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .word-box {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #word-display {
+            font-size: 38px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+            word-wrap: break-word;
+        }
+
+        #ans-display {
+            font-size: 22px;
+            color: #3498db;
+            margin-top: 15px;
+            min-height: 30px;
+            font-weight: 500;
+            /* 預設隱藏 */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .show-answer #ans-display {
+            opacity: 1;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .primary-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .secondary-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .secondary-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .mode-btn {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .mode-btn:hover {
+            background-color: #bdc3c7;
+            color: white;
+        }
+
+        /* 讀取中狀態 */
+        .loading {
+            color: #95a5a6;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div id="mode-label" style="font-size: 12px; color: #999;">目前模式：英翻中</div>
-    <div class="word" id="word-display">Loading...</div>
-    <div class="ans" id="ans-display">翻譯載入中</div>
-    
-    <button onclick="showAns()">看答案</button>
-    <button onclick="nextWord()">下一題 (隨機)</button>
-    <button class="mode-btn" onclick="toggleMode()">切換 英中/中英 模式</button>
-</div>
+    <div class="card" id="main-card">
+        <div id="mode-label">目前模式：英翻中</div>
+        
+        <div class="word-box">
+            <h1 id="word-display" class="loading">載入中...</h1>
+            <div id="ans-display">翻譯載入中</div>
+        </div>
 
-<script>
-    // 【重點】在這裡增加你的新單字！
-    const myWords = [
-        { en: "Accomplish", zh: "完成；實現" },
-        { en: "Mandatory", zh: "強制性的" },
-        { en: "Incentive", zh: "誘因" },
-        { en: "Execute", zh: "執行" },
-        { en: "Quarterly", zh: "每季的" }
-    ];
+        <div class="button-group">
+            <button class="primary-btn" onclick="showAns()">查看翻譯</button>
+            <button class="secondary-btn" onclick="nextWord()">下一個單字</button>
+            <button class="mode-btn" onclick="toggleMode()">切換 英中 / 中英</button>
+        </div>
+    </div>
 
-    let currentIndex = 0;
-    let isEnToZh = true;
+    <script>
+        let myWords = [];
+        let currentIndex = 0;
+        let isEnToZh = true;
+        const card = document.getElementById('main-card');
+        const wordEl = document.getElementById('word-display');
+        const ansEl = document.getElementById('ans-display');
+        const modeEl = document.getElementById('mode-label');
 
-    function nextWord() {
-        currentIndex = Math.floor(Math.random() * myWords.length);
-        document.getElementById('ans-display').style.visibility = "hidden";
-        updateDisplay();
-    }
-
-    function updateDisplay() {
-        const item = myWords[currentIndex];
-        if (isEnToZh) {
-            document.getElementById('word-display').innerText = item.en;
-            document.getElementById('ans-display').innerText = item.zh;
-        } else {
-            document.getElementById('word-display').innerText = item.zh;
-            document.getElementById('ans-display').innerText = item.en;
+        // 1. 從 JSON 檔案抓取資料
+        async function loadWords() {
+            try {
+                // 注意：確保你的 words.json 檔案已經上傳到同一個倉庫
+                const response = await fetch('words.json');
+                if (!response.ok) throw new Error('找不到 words.json 檔案');
+                
+                myWords = await response.json();
+                
+                if (myWords.length > 0) {
+                    wordEl.classList.remove('loading');
+                    nextWord();
+                } else {
+                    wordEl.innerText = "JSON 檔內沒有單字";
+                }
+            } catch (error) {
+                wordEl.innerText = "讀取失敗";
+                ansEl.innerText = "請確認 words.json 是否已上傳";
+                ansEl.style.opacity = 1;
+                console.error(error);
+            }
         }
-    }
 
-    function showAns() {
-        document.getElementById('ans-display').style.visibility = "visible";
-    }
+        // 2. 顯示下一題
+        function nextWord() {
+            if (myWords.length === 0) return;
+            
+            // 隨機選一個索引
+            currentIndex = Math.floor(Math.random() * myWords.length);
+            
+            // 隱藏答案動畫
+            card.classList.remove('show-answer');
+            
+            // 更新文字
+            setTimeout(updateDisplay, 150); // 微小延遲讓換題感覺更順暢
+        }
 
-    function toggleMode() {
-        isEnToZh = !isEnToZh;
-        document.getElementById('mode-label').innerText = isEnToZh ? "目前模式：英翻中" : "目前模式：中翻英";
-        updateDisplay();
-    }
+        // 3. 更新顯示內容
+        function updateDisplay() {
+            const item = myWords[currentIndex];
+            if (isEnToZh) {
+                wordEl.innerText = item.en;
+                ansEl.innerText = item.zh;
+            } else {
+                wordEl.innerText = item.zh;
+                ansEl.innerText = item.en;
+            }
+        }
 
-    // 網頁打開後先顯示第一題
-    nextWord();
-</script>
+        // 4. 顯示答案
+        function showAns() {
+            card.classList.add('show-answer');
+        }
 
+        // 5. 切換模式
+        function toggleMode() {
+            isEnToZh = !isEnToZh;
+            modeEl.innerText = isEnToZh ? "目前模式：英翻中" : "目前模式：中翻英";
+            updateDisplay();
+            card.classList.remove('show-answer');
+        }
+
+        // 初始化：啟動程式
+        loadWords();
+    </script>
 </body>
 </html>
