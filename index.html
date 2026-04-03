@@ -15,13 +15,17 @@
         #mode-label { font-size: 12px; color: #bbb; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         .pos { font-size: 14px; color: #9b59b6; font-weight: bold; margin-bottom: 5px; height: 20px; }
         
-        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; min-height: 50px; }
+        /* 增加切換時的透明度動畫 */
+        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; min-height: 50px; transition: opacity 0.15s ease; }
         
         /* 翻譯顯示區域 */
-        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s ease; margin-bottom: 30px; font-weight: 500; }
+        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.15s ease; margin-bottom: 30px; font-weight: 500; }
         
         /* 當父層有 show-answer 類別時才顯示翻譯 */
-        .show-answer #ans-display { opacity: 1; }
+        .show-answer #ans-display { opacity: 1 !important; }
+        
+        /* 切換中讓文字消失的類別 */
+        .switching #word-display, .switching #ans-display { opacity: 0 !important; }
 
         .button-group { display: flex; flex-direction: column; gap: 12px; }
         button.action { padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; outline: none; }
@@ -57,7 +61,6 @@
     let currentIndex = 0;
     let isEnToZh = true;
 
-    // 管理本地星號記憶
     function getStoredStars() {
         const saved = localStorage.getItem('toeic_stars');
         return saved ? JSON.parse(saved) : {};
@@ -84,7 +87,6 @@
             nextWord();
         } catch (e) {
             document.getElementById('word-display').innerText = "載入失敗";
-            console.error("無法抓取 words.json，請檢查位置與名稱是否正確。");
         }
     }
 
@@ -95,10 +97,13 @@
     function nextWord() {
         if (myWords.length === 0) return;
 
-        // 步驟 1: 先隱藏目前的答案 (移除顯示類別)
-        document.getElementById('main-card').classList.remove('show-answer');
+        const card = document.getElementById('main-card');
+        
+        // 1. 先隱藏答案，並啟動「切換中」模式讓文字變透明
+        card.classList.remove('show-answer');
+        card.classList.add('switching');
 
-        // 步驟 2: 延遲極短時間再換字，避免視覺閃現
+        // 2. 延遲 200 毫秒 (0.2 秒) 等透明動畫完成後再換字
         setTimeout(() => {
             let pool = [];
             myWords.forEach((w, i) => {
@@ -108,25 +113,25 @@
 
             currentIndex = pool[Math.floor(Math.random() * pool.length)];
             updateDisplay();
-        }, 50); 
+
+            // 3. 換好字後，移除「切換中」模式，讓新單字優雅地顯現
+            setTimeout(() => {
+                card.classList.remove('switching');
+            }, 50);
+        }, 200); 
     }
 
     function updateDisplay() {
         const item = myWords[currentIndex];
-        const wordEl = document.getElementById('word-display');
-        const ansEl = document.getElementById('ans-display');
-        const starEl = document.getElementById('star');
-        const posEl = document.getElementById('pos-display');
-
-        posEl.innerText = item.pos || "";
-        starEl.classList.toggle('active', item.starred);
+        document.getElementById('pos-display').innerText = item.pos || "";
+        document.getElementById('star').classList.toggle('active', item.starred);
         
         if (isEnToZh) {
-            wordEl.innerText = item.en;
-            ansEl.innerText = item.zh;
+            document.getElementById('word-display').innerText = item.en;
+            document.getElementById('ans-display').innerText = item.zh;
         } else {
-            wordEl.innerText = item.zh;
-            ansEl.innerText = item.en;
+            document.getElementById('word-display').innerText = item.zh;
+            document.getElementById('ans-display').innerText = item.en;
         }
     }
 
@@ -148,3 +153,4 @@
 </script>
 </body>
 </html>
+
