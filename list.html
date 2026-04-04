@@ -1,40 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>單字清單</title>
     <style>
-        body { font-family: sans-serif; background: #f5f7fa; padding: 20px; }
-        .item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .en { font-weight: bold; font-size: 18px; }
-        .btn { border: none; background: none; font-size: 20px; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f5f7fa; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { text-decoration: none; color: #3498db; font-weight: bold; font-size: 16px; background: white; padding: 10px 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .word-item { background: white; padding: 18px; border-radius: 18px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .en { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .zh { font-size: 15px; color: #7f8c8d; }
+        .pos { font-size: 12px; color: white; background: #9b59b6; padding: 2px 6px; border-radius: 5px; margin-right: 8px; font-weight: bold; }
+        .btn { border: none; background: none; cursor: pointer; font-size: 26px; padding: 5px; outline: none; }
+        .star { color: #eee; }
+        .star.active { color: #f1c40f; }
+        .speaker { color: #3498db; }
     </style>
 </head>
 <body>
-    <a href="index.html" style="text-decoration: none; color: #3498db;">← 返回首頁</a>
-    <h2>單字本</h2>
-    <div id="list">載入中...</div>
+    <div class="header">
+        <a href="index.html" class="back-btn">← 回首頁</a>
+        <h2 style="margin:0; font-size: 20px; color: #2c3e50;">單字本</h2>
+    </div>
+    <div id="list-container">載入中...</div>
 
-    <script>
-        async function load() {
-            const res = await fetch('words.json?v=' + Date.now());
-            const words = await res.json();
-            const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
-            const con = document.getElementById('list');
-            con.innerHTML = '';
-            words.forEach(w => {
-                const isS = stars[w.en] ? '★' : '☆';
-                con.innerHTML += '<div class="item"><div><div class="en">'+w.en+'</div><div>'+w.zh+'</div></div><button class="btn" onclick="speak(\''+w.en+'\')">🔊</button></div>';
-            });
-        }
-        function speak(t) {
-            window.speechSynthesis.cancel();
-            const m = new SpeechSynthesisUtterance(t);
-            m.lang = 'en-US';
-            window.speechSynthesis.speak(m);
-        }
-        load();
-    </script>
+<script>
+    let myWords = [];
+    async function loadList() {
+        const response = await fetch('words.json?v=' + Date.now());
+        myWords = await response.json();
+        const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+        myWords.forEach(w => {
+            const isStarred = stars[w.en] || false;
+            const div = document.createElement('div');
+            div.className = 'word-item';
+            div.innerHTML = `
+                <div class="word-info">
+                    <div class="en">${w.en}</div>
+                    <div><span class="pos">${w.pos || 'n.'}</span><span class="zh">${w.zh}</span></div>
+                </div>
+                <div class="actions">
+                    <button class="btn speaker" onclick="speak('${w.en}')">🔊</button>
+                    <button class="btn star ${isStarred ? 'active' : ''}" onclick="toggleStar(this, '${w.en}')">★</button>
+                </div>`;
+            container.appendChild(div);
+        });
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const m = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || voices.find(v => v.lang.includes('en-US'));
+        if (usVoice) m.voice = usVoice;
+        m.lang = 'en-US';
+        m.rate = 0.85;
+        window.speechSynthesis.speak(m);
+    }
+
+    function toggleStar(btn, en) {
+        const isActive = btn.classList.toggle('active');
+        const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
+        stars[en] = isActive;
+        localStorage.setItem('toeic_stars', JSON.stringify(stars));
+    }
+    loadList();
+    // 解決 iPad 聲音載入延遲的小技巧
+    window.speechSynthesis.getVoices();
+</script>
 </body>
 </html>
