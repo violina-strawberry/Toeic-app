@@ -45,34 +45,32 @@
         let currentItem = null;
 
         async function init() {
-            // 強制刷新資料
             const res = await fetch('words.json?v=' + Date.now());
             words = await res.json();
             nextWord();
         }
 
         function nextWord() {
-            // 1. 先把畫面清空
+            // 【第一步】先清空畫面，什麼都不要放
+            document.getElementById('word').innerText = "...";
+            document.getElementById('pos').innerText = "";
             document.getElementById('ans-display').innerText = "？ ？ ？";
             document.getElementById('ans-display').style.color = "#ccc";
 
-            // 2. 抽一個單字
-            currentItem = words[Math.floor(Math.random() * words.length)];
-
-            // 3. 只顯示英文跟詞性，絕對不碰中文 (currentItem.zh)
-            document.getElementById('word').innerText = currentItem.en;
-            document.getElementById('pos').innerText = currentItem.pos || 'n.';
+            // 【第二步】稍微延遲一下下，讓瀏覽器有時間把上面的「清空」畫出來
+            setTimeout(() => {
+                currentItem = words[Math.floor(Math.random() * words.length)];
+                document.getElementById('word').innerText = currentItem.en;
+                document.getElementById('pos').innerText = currentItem.pos || 'n.';
+            }, 50); // 延遲 50 毫秒
         }
 
         function showAns() {
             if(!currentItem) return;
-            
-            // 4. 按下按鈕的這一刻，才把中文塞進去
             const ansArea = document.getElementById('ans-display');
             ansArea.innerText = currentItem.zh;
             ansArea.style.color = "#3498db";
 
-            // 發音
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(currentItem.en);
             msg.lang = 'en-US';
