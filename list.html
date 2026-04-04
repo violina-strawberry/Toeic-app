@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>單字清單</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f5f7fa; padding: 20px; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #f5f7fa; padding: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .back-btn { text-decoration: none; color: #3498db; font-weight: bold; font-size: 16px; background: white; padding: 10px 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .word-item { background: white; padding: 18px; border-radius: 18px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .word-info { flex: 1; }
         .en { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .zh { font-size: 15px; color: #7f8c8d; }
         .pos { font-size: 12px; color: white; background: #9b59b6; padding: 2px 6px; border-radius: 5px; margin-right: 8px; font-weight: bold; }
-        .btn { border: none; background: none; cursor: pointer; font-size: 26px; padding: 5px; outline: none; }
-        .star { color: #eee; }
+        .actions { display: flex; gap: 10px; align-items: center; }
+        .btn { border: none; background: none; cursor: pointer; font-size: 24px; padding: 5px; outline: none; }
+        .speaker { color: #3498db; font-size: 20px; background: #ebf5ff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .star { color: #eee; font-size: 28px; }
         .star.active { color: #f1c40f; }
-        .speaker { color: #3498db; }
     </style>
 </head>
 <body>
@@ -27,9 +30,17 @@
 
 <script>
     let myWords = [];
+    
+    // 預熱語音
+    window.speechSynthesis.getVoices();
+
     async function loadList() {
         const response = await fetch('words.json?v=' + Date.now());
         myWords = await response.json();
+        renderList();
+    }
+
+    function renderList() {
         const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
         const container = document.getElementById('list-container');
         container.innerHTML = '';
@@ -54,10 +65,11 @@
         window.speechSynthesis.cancel();
         const m = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
-        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || voices.find(v => v.lang.includes('en-US'));
+        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || 
+                        voices.find(v => v.lang.includes('en-US'));
         if (usVoice) m.voice = usVoice;
         m.lang = 'en-US';
-        m.rate = 0.85;
+        m.rate = 0.8;
         window.speechSynthesis.speak(m);
     }
 
@@ -67,9 +79,8 @@
         stars[en] = isActive;
         localStorage.setItem('toeic_stars', JSON.stringify(stars));
     }
+    
     loadList();
-    // 解決 iPad 聲音載入延遲的小技巧
-    window.speechSynthesis.getVoices();
 </script>
 </body>
 </html>
