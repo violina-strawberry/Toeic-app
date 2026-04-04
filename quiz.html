@@ -3,81 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>測驗模式</title>
+    <title>TOEIC 測驗模式</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { 
-            font-family: sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            display: flex; justify-content: center; padding-top: 50px; margin: 0; min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px;
         }
+        .spacer { height: 20px; }
         .card { 
-            background: white; padding: 30px; border-radius: 25px; text-align: center; 
-            width: 90%; max-width: 350px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); height: fit-content;
+            background: white; padding: 25px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
+            text-align: center; width: 100%; max-width: 380px; position: relative;
         }
-        #word { font-size: 32px; color: #2c3e50; margin: 20px 0 10px 0; }
-        #pos { color: #9b59b6; font-weight: bold; font-size: 14px; height: 20px; }
+        
+        /* 進度條樣式 */
+        .progress-section { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
+        .progress-text { font-size: 11px; color: #999; margin-bottom: 6px; display: flex; justify-content: space-between; font-weight: bold; }
+        .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #3498db; width: 0%; transition: width 0.5s ease; }
+
+        #word { font-size: 34px; color: #2c3e50; margin: 10px 0; min-height: 45px; }
+        #pos { color: #9b59b6; font-weight: 800; font-size: 14px; height: 20px; }
+        
         .ans-box { 
             background: #f8f9fa; border-radius: 15px; margin: 20px 0; min-height: 60px; 
             display: flex; align-items: center; justify-content: center; font-size: 22px; 
-            color: #ccc; font-weight: bold; border: 1px dashed #eee;
+            color: #ccc; font-weight: bold;
         }
-        button { 
-            width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 12px; 
-            cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s;
-        }
-        .btn-ans { background: #3498db; color: white; }
-        .btn-next { background: #2ecc71; color: white; }
-        .back { text-decoration: none; color: #bbb; font-size: 13px; display: block; text-align: left; margin-bottom: 15px; }
+
+        /* 按鈕區域 */
+        .icon-btns { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px; }
+        .btn-icon { border: none; background: none; cursor: pointer; transition: transform 0.1s; padding: 0; }
+        .btn-icon:active { transform: scale(0.9); }
+        .speaker { font-size: 22px; color: white; background: #3498db; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(52,152,219,0.3); }
+        .star { font-size: 36px; color: #eee; }
+        .star.active { color: #f1c40f; }
+
+        button.action { width: 100%; padding: 16px; margin: 8px 0; border: none; border-radius: 14px; cursor: pointer; font-weight: 800; font-size: 17px; }
+        .primary { background: #3498db; color: white; }
+        .secondary { background: #2ecc71; color: white; }
+        .back-link { text-decoration: none; color: #bbb; font-size: 12px; display: block; text-align: left; margin-bottom: 10px; }
     </style>
 </head>
 <body>
+    <div class="spacer"></div>
     <div class="card">
-        <a href="index.html" class="back">← 返回選單</a>
+        <a href="index.html" class="back-link">← 返回選單</a>
+        
+        <div class="progress-section">
+            <div class="progress-text"><span>PROGRESS</span><span id="prog-count">0 / 0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+        </div>
+
         <div id="pos"></div>
         <h1 id="word">Loading...</h1>
+        
         <div class="ans-box" id="ans-display">? ? ?</div>
-        <button class="btn-ans" onclick="showAns()">看答案</button>
-        <button class="btn-next" onclick="nextWord()">下一題</button>
+
+        <div class="icon-btns">
+            <button class="btn-icon speaker" onclick="speak()">🔊</button>
+            <button id="star-btn" class="btn-icon star" onclick="toggleStar()">★</button>
+        </div>
+
+        <button class="action primary" onclick="showAns()">看答案</button>
+        <button class="action secondary" onclick="nextWord()">下一題</button>
     </div>
 
-    <script>
-        let words = [];
-        let currentItem = null;
+<script>
+    let words = [];
+    let currentItem = null;
+    let learned = [];
 
-        async function init() {
-            const res = await fetch('words.json?v=' + Date.now());
-            words = await res.json();
-            nextWord();
-        }
+    async function init() {
+        const res = await fetch('words.json?v=' + Date.now());
+        words = await res.json();
+        learned = JSON.parse(localStorage.getItem('toeic_progress') || '[]');
+        nextWord();
+    }
 
-        function nextWord() {
-            // 【第一步】先清空畫面，什麼都不要放
-            document.getElementById('word').innerText = "...";
-            document.getElementById('pos').innerText = "";
-            document.getElementById('ans-display').innerText = "？ ？ ？";
-            document.getElementById('ans-display').style.color = "#ccc";
+    function nextWord() {
+        // 先清空，防止殘影
+        document.getElementById('word').innerText = "...";
+        document.getElementById('ans-display').innerText = "？ ？ ？";
+        document.getElementById('ans-display').style.color = "#ccc";
+        document.getElementById('star-btn').classList.remove('active');
 
-            // 【第二步】稍微延遲一下下，讓瀏覽器有時間把上面的「清空」畫出來
-            setTimeout(() => {
-                currentItem = words[Math.floor(Math.random() * words.length)];
-                document.getElementById('word').innerText = currentItem.en;
-                document.getElementById('pos').innerText = currentItem.pos || 'n.';
-            }, 50); // 延遲 50 毫秒
-        }
+        setTimeout(() => {
+            // 隨機選一個還沒背過的（或全部背完就重來）
+            let index = Math.floor(Math.random() * words.length);
+            currentItem = words[index];
+            
+            // 更新進度
+            if(!learned.includes(index)) learned.push(index);
+            localStorage.setItem('toeic_progress', JSON.stringify(learned));
 
-        function showAns() {
-            if(!currentItem) return;
-            const ansArea = document.getElementById('ans-display');
-            ansArea.innerText = currentItem.zh;
-            ansArea.style.color = "#3498db";
+            // 顯示
+            document.getElementById('word').innerText = currentItem.en;
+            document.getElementById('pos').innerText = currentItem.pos || 'n.';
+            
+            // 更新星星狀態
+            const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
+            if(stars[currentItem.en]) document.getElementById('star-btn').classList.add('active');
 
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(currentItem.en);
-            msg.lang = 'en-US';
-            window.speechSynthesis.speak(msg);
-        }
+            // 更新進度條
+            document.getElementById('prog-count').innerText = learned.length + " / " + words.length;
+            document.getElementById('prog-fill').style.width = (learned.length / words.length * 100) + "%";
+        }, 50);
+    }
 
-        init();
-    </script>
+    function showAns() {
+        if(!currentItem) return;
+        const ansArea = document.getElementById('ans-display');
+        ansArea.innerText = currentItem.zh;
+        ansArea.style.color = "#3498db";
+    }
+
+    function speak() {
+        if(!currentItem) return;
+        window.speechSynthesis.cancel();
+        const m = new SpeechSynthesisUtterance(currentItem.en);
+        m.lang = 'en-US';
+        window.speechSynthesis.speak(m);
+    }
+
+    function toggleStar() {
+        if(!currentItem) return;
+        const btn = document.getElementById('star-btn');
+        const isActive = btn.classList.toggle('active');
+        const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
+        stars[currentItem.en] = isActive;
+        localStorage.setItem('toeic_stars', JSON.stringify(stars));
+    }
+
+    init();
+</script>
 </body>
 </html>
