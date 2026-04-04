@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>單字清單模式</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #f5f7fa; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .back-btn { text-decoration: none; color: #3498db; font-weight: bold; font-size: 14px; }
+        .word-item { 
+            background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .word-info { flex: 1; }
+        .en { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 4px; }
+        .zh { font-size: 14px; color: #7f8c8d; }
+        .pos { font-size: 12px; color: #9b59b6; margin-right: 8px; font-weight: bold; }
+        .actions { display: flex; gap: 15px; align-items: center; }
+        .btn { border: none; background: none; cursor: pointer; font-size: 20px; padding: 5px; }
+        .star.active { color: #f1c40f; }
+        .star { color: #eee; }
+        .speaker { color: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">← 返回主選單</a>
+        <h2 style="margin:0; font-size: 18px;">所有單字清單</h2>
+    </div>
+    <div id="list-container">載入中...</div>
+
+<script>
+    let myWords = [];
+    function getStoredStars() { return JSON.parse(localStorage.getItem('toeic_stars') || '{}'); }
+    function saveStar(wordEn, isStarred) {
+        const stars = getStoredStars();
+        stars[wordEn] = isStarred;
+        localStorage.setItem('toeic_stars', JSON.stringify(stars));
+    }
+
+    async function loadList() {
+        const response = await fetch('words.json?v=' + Date.now());
+        myWords = await response.json();
+        const stars = getStoredStars();
+        const container = document.getElementById('list-container');
+        container.innerHTML = '';
+
+        myWords.forEach(w => {
+            const isStarred = stars[w.en] || false;
+            const div = document.createElement('div');
+            div.className = 'word-item';
+            div.innerHTML = `
+                <div class="word-info">
+                    <div class="en">${w.en}</div>
+                    <span class="pos">${w.pos}</span><span class="zh">${w.zh}</span>
+                </div>
+                <div class="actions">
+                    <button class="btn speaker" onclick="speak('${w.en}')">🔊</button>
+                    <button class="btn star ${isStarred ? 'active' : ''}" onclick="toggleStar(this, '${w.en}')">★</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function toggleStar(btn, en) {
+        const isActive = btn.classList.toggle('active');
+        saveStar(en, isActive);
+    }
+
+    loadList();
+</script>
+</body>
+</html>
