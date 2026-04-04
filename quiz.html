@@ -56,6 +56,9 @@
     let currentIdx = -1;
     let learnedArr = [];
 
+    // 預熱語音系統
+    window.speechSynthesis.getVoices();
+
     async function initApp() {
         const res = await fetch('words.json?v=' + Date.now());
         words = await res.json();
@@ -95,11 +98,12 @@
         window.speechSynthesis.cancel();
         const m = new SpeechSynthesisUtterance(words[currentIdx].en);
         const voices = window.speechSynthesis.getVoices();
-        // 優先尋找美式英文聲音
-        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || voices.find(v => v.lang.includes('en-US'));
+        // 尋找標準美式女聲 Samantha 或其他 en-US 語音
+        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || 
+                        voices.find(v => v.lang.includes('en-US'));
         if (usVoice) m.voice = usVoice;
         m.lang = 'en-US';
-        m.rate = 0.85; // 稍慢一點聽得更清楚
+        m.rate = 0.8; 
         window.speechSynthesis.speak(m);
     }
 
