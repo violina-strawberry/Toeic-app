@@ -11,22 +11,17 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
             min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px;
         }
-        .spacer { height: 20px; }
         .card { 
             background: white; padding: 25px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
-            text-align: center; width: 100%; max-width: 400px; position: relative;
+            text-align: center; width: 100%; max-width: 400px; position: relative; margin-top: 20px;
         }
         .progress-section { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
         .progress-text { font-size: 11px; color: #999; margin-bottom: 6px; display: flex; justify-content: space-between; font-weight: bold; }
         .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: #3498db; width: 0%; transition: width 0.5s; }
-
         #word { font-size: 34px; color: #2c3e50; margin: 10px 0; min-height: 45px; }
         #pos { color: #9b59b6; font-weight: 800; font-size: 14px; height: 20px; }
-        .ans-box { 
-            background: #f8f9fa; border-radius: 15px; margin: 20px 0; min-height: 65px; 
-            display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ccc; font-weight: bold;
-        }
+        .ans-box { background: #f8f9fa; border-radius: 15px; margin: 20px 0; min-height: 65px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ccc; font-weight: bold; }
         .icon-btns { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px; }
         .btn-icon { border: none; background: none; cursor: pointer; transition: transform 0.1s; padding: 0; outline: none; }
         .speaker { font-size: 22px; color: white; background: #3498db; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(52,152,219,0.3); }
@@ -39,7 +34,6 @@
     </style>
 </head>
 <body>
-    <div class="spacer"></div>
     <div class="card">
         <a href="index.html" class="back-link">← 返回選單</a>
         <div class="progress-section">
@@ -63,36 +57,28 @@
     let learnedArr = [];
 
     async function initApp() {
-        try {
-            const res = await fetch('words.json?v=' + Date.now());
-            words = await res.json();
-            learnedArr = JSON.parse(localStorage.getItem('toeic_progress') || '[]');
-            handleNext();
-        } catch (e) { document.getElementById('word').innerText = "載入失敗"; }
+        const res = await fetch('words.json?v=' + Date.now());
+        words = await res.json();
+        learnedArr = JSON.parse(localStorage.getItem('toeic_progress') || '[]');
+        handleNext();
     }
 
     function handleNext() {
-        // 先洗掉殘影
         document.getElementById('ans-display').innerText = "？ ？ ？";
         document.getElementById('ans-display').style.color = "#ccc";
         document.getElementById('word').innerText = "...";
         document.getElementById('pos').innerText = "";
         document.getElementById('star-btn').classList.remove('active');
 
-        // 延遲一下再抽題，確保 UI 已更新
         setTimeout(() => {
             currentIdx = Math.floor(Math.random() * words.length);
             const item = words[currentIdx];
-
             document.getElementById('word').innerText = item.en;
             document.getElementById('pos').innerText = item.pos || 'n.';
-            
             const stars = JSON.parse(localStorage.getItem('toeic_stars') || '{}');
             if(stars[item.en]) document.getElementById('star-btn').classList.add('active');
-
             if(!learnedArr.includes(currentIdx)) learnedArr.push(currentIdx);
             localStorage.setItem('toeic_progress', JSON.stringify(learnedArr));
-            
             document.getElementById('prog-count').innerText = learnedArr.length + " / " + words.length;
             document.getElementById('prog-fill').style.width = (learnedArr.length / words.length * 100) + "%";
         }, 100);
@@ -108,7 +94,12 @@
         if(currentIdx === -1) return;
         window.speechSynthesis.cancel();
         const m = new SpeechSynthesisUtterance(words[currentIdx].en);
+        const voices = window.speechSynthesis.getVoices();
+        // 優先尋找美式英文聲音
+        const usVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Samantha')) || voices.find(v => v.lang.includes('en-US'));
+        if (usVoice) m.voice = usVoice;
         m.lang = 'en-US';
+        m.rate = 0.85; // 稍慢一點聽得更清楚
         window.speechSynthesis.speak(m);
     }
 
@@ -120,8 +111,6 @@
         stars[words[currentIdx].en] = isActive;
         localStorage.setItem('toeic_stars', JSON.stringify(stars));
     }
-
-    // 這行一定要有，才是啟動程式的鑰匙！
     initApp();
 </script>
 </body>
