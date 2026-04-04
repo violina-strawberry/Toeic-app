@@ -2,100 +2,84 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TOEIC 測驗模式</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>測驗模式</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
-            overflow: hidden; padding: 20px;
+            font-family: sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            display: flex; justify-content: center; padding-top: 50px; margin: 0; min-height: 100vh;
         }
-        /* 隱形墊片把卡片往下推，不居中，避免 iPad Chrome 居中 bug */
-        .spacer { height: 30px; flex-shrink: 0; }
         .card { 
-            background: white; padding: 30px; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
-            text-align: center; width: 100%; max-width: 400px; position: relative;
+            background: white; padding: 30px; border-radius: 25px; text-align: center; 
+            width: 90%; max-width: 350px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); height: fit-content;
         }
+        #word { font-size: 32px; color: #2c3e50; margin: 20px 0 10px 0; }
+        #pos { color: #9b59b6; font-weight: bold; font-size: 14px; height: 20px; }
         .ans-box { 
-            background: #f8f9fa; border-radius: 15px; margin: 25px 0; min-height: 60px; 
-            display: flex; align-items: center; justify-content: center; font-size: 24px; 
-            color: #3498db; font-weight: 600; font-weight: bold;
+            background: #f8f9fa; border-radius: 15px; margin: 20px 0; min-height: 60px; 
+            display: flex; align-items: center; justify-content: center; font-size: 22px; 
+            color: #ccc; font-weight: bold; border: 1px dashed #eee;
         }
-        #word { font-size: 36px; color: #2c3e50; margin: 15px 0 10px 0; min-height: 50px; line-height: 1.1; }
-        #pos { color: #9b59b6; font-weight: 800; font-size: 15px; height: 22px; }
         button { 
-            width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 16px; 
-            cursor: pointer; font-weight: 800; font-size: 18px; transition: all 0.2s ease;
+            width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 12px; 
+            cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s;
         }
-        .btn-ans { background: #3498db; color: white; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
-        .btn-ans:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2); }
-        .btn-next { background: #2ecc71; color: white; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); }
-        .btn-next:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(46, 204, 113, 0.2); }
-        .back-btn { text-decoration: none; color: #3498db; font-weight: bold; font-size: 14px; display: block; text-align: left; margin-bottom: 15px; }
+        .btn-ans { background: #3498db; color: white; }
+        .btn-next { background: #2ecc71; color: white; }
+        .back { text-decoration: none; color: #bbb; font-size: 13px; display: block; text-align: left; margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <div class="spacer"></div>
-    <div class="card" id="main-card">
-        <a href="index.html" class="back-btn">← 返回選單</a>
+    <div class="card">
+        <a href="index.html" class="back">← 返回選單</a>
         <div id="pos"></div>
         <h1 id="word">Loading...</h1>
-        
         <div class="ans-box" id="ans-display">? ? ?</div>
-        
-        <button class="btn-ans" onclick="showAnswer()">看答案</button>
+        <button class="btn-ans" onclick="showAns()">看答案</button>
         <button class="btn-next" onclick="nextWord()">下一題</button>
     </div>
 
-<script>
-    let words = [];
-    let currentIndex = -1;
+    <script>
+        let words = [];
+        let currentItem = null;
 
-    // 初始載入
-    async function init() {
-        // 使用亂數標籤強制刷新資料，不讀取快取
-        const res = await fetch('words.json?v=' + Date.now());
-        words = await res.json();
-        nextWord();
-    }
+        async function init() {
+            // 強制刷新資料
+            const res = await fetch('words.json?v=' + Date.now());
+            words = await res.json();
+            nextWord();
+        }
 
-    // 按下「看答案」
-    function showAnswer() {
-        if(currentIndex === -1) return;
-        
-        // 【物理隔絕】只有在這一刻，JavaScript 才把中文塞進去
-        const item = words[currentIndex];
-        const ansArea = document.getElementById('ans-display');
-        ansArea.innerText = item.zh;
-        ansArea.style.color = "#3498db";
-        
-        // 喇叭發音
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(item.en);
-        msg.lang = 'en-US';
-        window.speechSynthesis.speak(msg);
-    }
+        function nextWord() {
+            // 1. 先把畫面清空
+            document.getElementById('ans-display').innerText = "？ ？ ？";
+            document.getElementById('ans-display').style.color = "#ccc";
 
-    // 按下「下一題」
-    function nextWord() {
-        // 1. 【第一件事】先把答案區域徹底洗乾淨，連文字都變淡
-        const ansArea = document.getElementById('ans-display');
-        ansArea.innerText = "？ ？ ？";
-        ansArea.style.color = "#ccc";
+            // 2. 抽一個單字
+            currentItem = words[Math.floor(Math.random() * words.length)];
 
-        // 2. 隨機選一個新索引
-        if (words.length === 0) return;
-        currentIndex = Math.floor(Math.random() * words.length);
-        const item = words[currentIndex];
+            // 3. 只顯示英文跟詞性，絕對不碰中文 (currentItem.zh)
+            document.getElementById('word').innerText = currentItem.en;
+            document.getElementById('pos').innerText = currentItem.pos || 'n.';
+        }
 
-        // 3. 【只】填入英文跟詞性
-        document.getElementById('word').innerText = item.en;
-        document.getElementById('pos').innerText = item.pos || 'n.';
-    }
+        function showAns() {
+            if(!currentItem) return;
+            
+            // 4. 按下按鈕的這一刻，才把中文塞進去
+            const ansArea = document.getElementById('ans-display');
+            ansArea.innerText = currentItem.zh;
+            ansArea.style.color = "#3498db";
 
-    init();
-</script>
+            // 發音
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(currentItem.en);
+            msg.lang = 'en-US';
+            window.speechSynthesis.speak(msg);
+        }
+
+        init();
+    </script>
 </body>
 </html>
