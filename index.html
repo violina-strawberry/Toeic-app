@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TOEIC單字機</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -12,22 +12,30 @@
             margin: 0; 
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
             min-height: 100vh;
-            /* 關鍵：取消彈性盒子居中，改用絕對頂部對齊 */
-            display: block; 
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 關鍵：不再使用垂直居中，直接靠頂部 */
+            justify-content: flex-start; 
+        }
+
+        /* 隱形墊片：強迫卡片跟頂部保持 30px 的距離 */
+        .spacer {
+            height: 30px;
+            width: 100%;
+            flex-shrink: 0;
         }
         
-        /* 讓卡片在 iPad 上水平居中，但垂直位置固定在上方 */
         .card { 
             background: white; 
             padding: 25px; 
             border-radius: 28px; 
             box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
             text-align: center; 
-            width: 95%; 
-            max-width: 450px; /* iPad 上讓它寬一點比較大氣 */
-            margin: 0 auto; /* 水平居中 */
+            width: 92%; 
+            max-width: 420px; 
             position: relative;
+            flex-shrink: 0;
         }
         
         .progress-section {
@@ -48,29 +56,31 @@
 
         #mode-label { font-size: 10px; color: #ccc; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
         .pos { font-size: 15px; color: #9b59b6; font-weight: 800; margin-bottom: 5px; height: 22px; }
-        #word-display { font-size: 38px; color: #2c3e50; margin: 10px 0; min-height: 50px; line-height: 1.1; word-break: break-word; }
-        #ans-display { font-size: 24px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s; margin-bottom: 25px; font-weight: 600; }
+        #word-display { font-size: 34px; color: #2c3e50; margin: 10px 0; min-height: 45px; line-height: 1.1; word-break: break-word; }
+        #ans-display { font-size: 22px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s; margin-bottom: 20px; font-weight: 600; }
         
-        .action-btns { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 30px; }
+        .action-btns { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 25px; }
         .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; padding: 0; }
         .icon-btn:active { transform: scale(0.9); }
-        .star-btn { font-size: 42px; color: #eee; line-height: 1; }
+        .star-btn { font-size: 38px; color: #eee; line-height: 1; }
         .star-btn.active { color: #f1c40f; }
-        .speaker-btn { font-size: 24px; color: white; background: #3498db; border-radius: 50%; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
+        .speaker-btn { font-size: 22px; color: white; background: #3498db; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
 
         .show-answer #ans-display { opacity: 1 !important; }
         .switching #word-display, .switching #ans-display, .switching .action-btns { opacity: 0 !important; }
 
-        .button-group { display: flex; flex-direction: column; gap: 15px; }
-        button.action { padding: 20px; border: none; border-radius: 18px; font-size: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .button-group { display: flex; flex-direction: column; gap: 12px; }
+        button.action { padding: 18px; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; }
         .primary { background: #3498db; color: white; }
         .secondary { background: #2ecc71; color: white; }
         
         .footer-tools { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid #f9f9f9; }
-        .footer-btn { background: none; border: none; color: #ddd; font-size: 12px; cursor: pointer; text-decoration: underline; }
+        .footer-btn { background: none; border: none; color: #ddd; font-size: 11px; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
+
+<div class="spacer"></div>
 
 <div class="card" id="main-card">
     <div class="progress-section">
@@ -94,13 +104,13 @@
     </div>
 
     <div class="button-group">
-        <button class="action primary" onclick="showAnswer()">看答案</button>
-        <button class="action secondary" onclick="nextWord()">下一題</button>
+        <button class="action primary" onclick="showAnswer()">SHOW ANSWER</button>
+        <button class="action secondary" onclick="nextWord()">NEXT WORD</button>
     </div>
 
     <div class="footer-tools">
-        <button class="footer-btn" onclick="toggleMode()">切換模式</button>
-        <button class="footer-btn" onclick="resetProgress()">重置進度</button>
+        <button class="footer-btn" onclick="toggleMode()">SWAP MODE</button>
+        <button class="footer-btn" onclick="resetProgress()">RESET</button>
     </div>
 </div>
 
