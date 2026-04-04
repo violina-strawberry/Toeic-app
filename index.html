@@ -1,77 +1,22 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOEIC 學習中心</title>
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            padding: 20px;
-        }
-        .menu-card { 
-            background: white; 
-            padding: 40px 30px; 
-            border-radius: 35px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
-            text-align: center; 
-            width: 100%; 
-            max-width: 380px; 
-        }
-        h1 { color: #2c3e50; font-size: 26px; margin-bottom: 10px; }
-        .tag { 
-            display: inline-block; 
-            background: #e74c3c; 
-            color: white; 
-            padding: 4px 14px; 
-            border-radius: 20px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            margin-bottom: 35px; 
-        }
-        .btn { 
-            display: block; 
-            width: 100%; 
-            padding: 22px; 
-            margin-bottom: 20px; 
-            border: none; 
-            border-radius: 20px; 
-            font-size: 19px; 
-            font-weight: 900; 
-            cursor: pointer; 
-            text-decoration: none; 
-            transition: all 0.3s ease;
-        }
-        .btn-quiz { 
-            background: #3498db; 
-            color: white; 
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3); 
-        }
-        .btn-list { 
-            background: #2ecc71; 
-            color: white; 
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3); 
-        }
-        .btn:active { transform: scale(0.96); }
-        .footer { margin-top: 25px; font-size: 12px; color: #bdc3c7; font-weight: bold; letter-spacing: 1px; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .menu { background: white; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 300px; }
+        .btn { display: block; padding: 15px; margin: 15px 0; border-radius: 15px; text-decoration: none; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-q { background: #3498db; }
+        .btn-l { background: #2ecc71; }
     </style>
 </head>
 <body>
-    <div class="menu-card">
-        <h1>TOEIC 學習中心</h1>
-        <div class="tag">TARGET: 900+ 🔥</div>
-        
-        <a href="quiz.html" class="btn btn-quiz">🎯 進入測驗模式</a>
-        <a href="list.html" class="btn btn-list">📖 瀏覽單字清單</a>
-        
-        <div class="footer">DEVELOPED BY YOU 🚀</div>
+    <div class="menu">
+        <h2>TOEIC 訓練營</h2>
+        <a href="quiz.html" class="btn btn-q">🎯 測驗模式</a>
+        <a href="list.html" class="btn btn-l">📖 單字清單</a>
     </div>
 </body>
 </html>
