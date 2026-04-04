@@ -11,65 +11,66 @@
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
             display: flex; 
-            flex-direction: column; /* 改為垂直排列 */
+            flex-direction: column;
             align-items: center; 
             min-height: 100vh; 
             margin: 0; 
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            padding-top: 40px; /* 固定上方距離，不居中了！ */
+            /* iPad 頂部留白：固定在上方，不隨螢幕大小亂跑 */
+            padding-top: 50px; 
             overflow-x: hidden;
         }
         
         .card { 
             background: white; 
-            padding: 22px; 
-            border-radius: 24px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            padding: 30px; 
+            border-radius: 28px; 
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
             text-align: center; 
-            width: 88vw; 
-            max-width: 310px; 
+            /* iPad 適配：寬度會隨螢幕調整，但有最大限制 */
+            width: 90vw; 
+            max-width: 400px; 
             position: relative;
         }
         
-        /* 進度條區域 - 緊湊排列 */
         .progress-section {
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
             border-bottom: 1px dashed #eee;
         }
         .progress-text { 
-            font-size: 10px; 
+            font-size: 11px; 
             color: #999; 
-            margin-bottom: 5px; 
+            margin-bottom: 8px; 
             display: flex; 
             justify-content: space-between; 
             font-weight: bold;
         }
-        .progress-bar { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+        .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: #3498db; width: 0%; transition: width 0.5s ease; }
 
-        #mode-label { font-size: 9px; color: #ccc; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .pos { font-size: 13px; color: #9b59b6; font-weight: 800; margin-bottom: 3px; height: 18px; }
-        #word-display { font-size: 28px; color: #2c3e50; margin: 8px 0; min-height: 40px; line-height: 1.2; word-break: break-word; }
-        #ans-display { font-size: 18px; color: #3498db; min-height: 25px; opacity: 0; transition: opacity 0.2s; margin-bottom: 20px; font-weight: 600; }
+        #mode-label { font-size: 10px; color: #ccc; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .pos { font-size: 15px; color: #9b59b6; font-weight: 800; margin-bottom: 5px; height: 22px; }
+        #word-display { font-size: 36px; color: #2c3e50; margin: 10px 0; min-height: 50px; line-height: 1.1; word-break: break-word; }
+        #ans-display { font-size: 22px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s; margin-bottom: 25px; font-weight: 600; }
         
-        .action-btns { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px; }
-        .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; }
+        .action-btns { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 30px; }
+        .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; padding: 0; }
         .icon-btn:active { transform: scale(0.9); }
-        .star-btn { font-size: 30px; color: #eee; line-height: 1; }
+        .star-btn { font-size: 38px; color: #eee; line-height: 1; }
         .star-btn.active { color: #f1c40f; }
-        .speaker-btn { font-size: 18px; color: white; background: #3498db; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .speaker-btn { font-size: 22px; color: white; background: #3498db; border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
 
         .show-answer #ans-display { opacity: 1 !important; }
         .switching #word-display, .switching #ans-display, .switching .action-btns { opacity: 0 !important; }
 
-        .button-group { display: flex; flex-direction: column; gap: 10px; }
-        button.action { padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .button-group { display: flex; flex-direction: column; gap: 15px; }
+        button.action { padding: 18px; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; }
         .primary { background: #3498db; color: white; }
         .secondary { background: #2ecc71; color: white; }
         
-        .footer-tools { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 10px; border-top: 1px solid #f9f9f9; }
-        .footer-btn { background: none; border: none; color: #ddd; font-size: 9px; cursor: pointer; text-decoration: underline; }
+        .footer-tools { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid #f9f9f9; }
+        .footer-btn { background: none; border: none; color: #ddd; font-size: 11px; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -77,13 +78,13 @@
 <div class="card" id="main-card">
     <div class="progress-section">
         <div class="progress-text">
-            <span>LEARNING</span>
+            <span>LEARNING PROGRESS</span>
             <span id="progress-count">0 / 0</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
 
-    <div id="mode-label">TOEIC Practice</div>
+    <div id="mode-label">TOEIC App</div>
     <div class="word-box">
         <div class="pos" id="pos-display"></div>
         <h1 id="word-display">Loading...</h1>
@@ -101,7 +102,7 @@
     </div>
 
     <div class="footer-tools">
-        <button class="footer-btn" onclick="toggleMode()">MODE</button>
+        <button class="footer-btn" onclick="toggleMode()">SWAP MODE</button>
         <button class="footer-btn" onclick="resetProgress()">RESET</button>
     </div>
 </div>
