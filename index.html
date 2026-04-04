@@ -7,11 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="TOEIC單字機">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3771/3771127.png">
-    
     <title>高階商務單字練習</title>
     <style>
-        /* 優化手機點擊體驗，避免藍色框框 */
-        * { -webkit-tap-highlight-color: transparent; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); overflow: hidden; }
         .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 85vw; max-width: 320px; position: relative; }
         .star-btn { position: absolute; top: 20px; right: 20px; font-size: 28px; cursor: pointer; color: #ddd; border: none; background: none; outline: none; }
@@ -25,10 +23,10 @@
         .show-answer #ans-display { opacity: 1 !important; }
         .switching #word-display, .switching #ans-display, .switching .speaker-btn { opacity: 0 !important; }
         .button-group { display: flex; flex-direction: column; gap: 12px; }
-        button.action { padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        button.action { padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .primary { background: #3498db; color: white; }
         .secondary { background: #2ecc71; color: white; }
-        .mode-btn { background: #f8f9fa; color: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; padding: 8px; }
+        .mode-btn { background: #f8f9fa; color: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #eee; padding: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -49,12 +47,17 @@
         <button class="mode-btn" onclick="toggleMode()">切換模式</button>
     </div>
 </div>
+
 <script>
     let myWords = [];
-    let currentIndex = 0;
+    let recentIndexes = []; // 記憶最近出現過的單字索引
+    const historyLimit = 20; // 20題內不重複
+    let currentIndex = -1;
     let isEnToZh = true;
+
     function getStoredStars() { const saved = localStorage.getItem('toeic_stars'); return saved ? JSON.parse(saved) : {}; }
     function saveStar(wordEn, isStarred) { const stars = getStoredStars(); stars[wordEn] = isStarred; localStorage.setItem('toeic_stars', JSON.stringify(stars)); }
+    
     async function loadWords() {
         try {
             const response = await fetch('words.json?v=' + Date.now());
@@ -64,21 +67,53 @@
             nextWord();
         } catch (e) { document.getElementById('word-display').innerText = "載入失敗"; }
     }
+
     function showAnswer() { document.getElementById('main-card').classList.add('show-answer'); }
-    function speakWord() { if(!myWords[currentIndex]) return; const msg = new SpeechSynthesisUtterance(myWords[currentIndex].en); msg.lang = 'en-US'; window.speechSynthesis.speak(msg); }
+
+    function speakWord() { 
+        if(!myWords[currentIndex]) return; 
+        const msg = new SpeechSynthesisUtterance(myWords[currentIndex].en); 
+        msg.lang = 'en-US'; 
+        window.speechSynthesis.speak(msg); 
+    }
+
     function nextWord() {
         if (myWords.length === 0) return;
         const card = document.getElementById('main-card');
         card.classList.remove('show-answer');
         card.classList.add('switching');
+
         setTimeout(() => {
-            let pool = [];
-            myWords.forEach((w, i) => { pool.push(i); if (w.starred) for(let j=0; j<4; j++) pool.push(i); });
-            currentIndex = pool[Math.floor(Math.random() * pool.length)];
+            // 找出不在「近期重複清單」中的候選人
+            let candidates = [];
+            myWords.forEach((w, i) => {
+                if (!recentIndexes.includes(i)) {
+                    candidates.push(i);
+                    // 🌟 如果有星號，增加權重 (在候選池中多放幾次)
+                    if (w.starred) for(let j=0; j<4; j++) candidates.push(i);
+                }
+            });
+
+            // 如果候選人跑光了 (通常不會，除非總單字量太少)，就清空歷史重新來
+            if (candidates.length === 0) {
+                recentIndexes = [];
+                myWords.forEach((w, i) => candidates.push(i));
+            }
+
+            // 從候選池中隨機挑一個
+            currentIndex = candidates[Math.floor(Math.random() * candidates.length)];
+            
+            // 把這題加入歷史紀錄，並維持長度在 20 以內
+            recentIndexes.push(currentIndex);
+            if (recentIndexes.length > historyLimit) {
+                recentIndexes.shift(); // 移除最舊的一個
+            }
+
             updateDisplay();
             setTimeout(() => { card.classList.remove('switching'); }, 100);
         }, 250);
     }
+
     function updateDisplay() {
         const item = myWords[currentIndex];
         document.getElementById('pos-display').innerText = item.pos || "";
@@ -87,11 +122,10 @@
         if (isEnToZh) { document.getElementById('word-display').innerText = item.en; document.getElementById('ans-display').innerText = item.zh; }
         else { document.getElementById('word-display').innerText = item.zh; document.getElementById('ans-display').innerText = item.en; }
     }
+
     function toggleStar() { const item = myWords[currentIndex]; item.starred = !item.starred; document.getElementById('star').classList.toggle('active', item.starred); saveStar(item.en, item.starred); }
     function toggleMode() { isEnToZh = !isEnToZh; updateDisplay(); document.getElementById('main-card').classList.remove('show-answer'); }
     loadWords();
 </script>
 </body>
 </html>
-
-       
