@@ -3,190 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOEIC單字機</title>
+    <title>TOEIC學習中心</title>
     <style>
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* 關鍵：不再使用垂直居中，直接靠頂部 */
-            justify-content: flex-start; 
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+        .menu-card { background: white; padding: 40px 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 85vw; max-width: 350px; }
+        h1 { color: #2c3e50; font-size: 24px; margin-bottom: 30px; }
+        .menu-btn { 
+            display: block; width: 100%; padding: 20px; margin-bottom: 15px; 
+            border: none; border-radius: 20px; font-size: 18px; font-weight: bold; 
+            cursor: pointer; text-decoration: none; transition: 0.3s;
         }
-
-        /* 隱形墊片：強迫卡片跟頂部保持 30px 的距離 */
-        .spacer {
-            height: 30px;
-            width: 100%;
-            flex-shrink: 0;
-        }
-        
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 28px; 
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1); 
-            text-align: center; 
-            width: 92%; 
-            max-width: 420px; 
-            position: relative;
-            flex-shrink: 0;
-        }
-        
-        .progress-section {
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed #eee;
-        }
-        .progress-text { 
-            font-size: 11px; 
-            color: #999; 
-            margin-bottom: 6px; 
-            display: flex; 
-            justify-content: space-between; 
-            font-weight: bold;
-        }
-        .progress-bar { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #3498db; width: 0%; transition: width 0.5s ease; }
-
-        #mode-label { font-size: 10px; color: #ccc; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
-        .pos { font-size: 15px; color: #9b59b6; font-weight: 800; margin-bottom: 5px; height: 22px; }
-        #word-display { font-size: 34px; color: #2c3e50; margin: 10px 0; min-height: 45px; line-height: 1.1; word-break: break-word; }
-        #ans-display { font-size: 22px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s; margin-bottom: 20px; font-weight: 600; }
-        
-        .action-btns { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 25px; }
-        .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; padding: 0; }
-        .icon-btn:active { transform: scale(0.9); }
-        .star-btn { font-size: 38px; color: #eee; line-height: 1; }
-        .star-btn.active { color: #f1c40f; }
-        .speaker-btn { font-size: 22px; color: white; background: #3498db; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
-
-        .show-answer #ans-display { opacity: 1 !important; }
-        .switching #word-display, .switching #ans-display, .switching .action-btns { opacity: 0 !important; }
-
-        .button-group { display: flex; flex-direction: column; gap: 12px; }
-        button.action { padding: 18px; border: none; border-radius: 16px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .primary { background: #3498db; color: white; }
-        .secondary { background: #2ecc71; color: white; }
-        
-        .footer-tools { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid #f9f9f9; }
-        .footer-btn { background: none; border: none; color: #ddd; font-size: 11px; cursor: pointer; text-decoration: underline; }
+        .btn-quiz { background: #3498db; color: white; box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3); }
+        .btn-list { background: #2ecc71; color: white; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3); }
+        .menu-btn:hover { transform: translateY(-3px); }
+        .subtitle { color: #95a5a6; font-size: 12px; margin-top: 20px; }
     </style>
 </head>
 <body>
-
-<div class="spacer"></div>
-
-<div class="card" id="main-card">
-    <div class="progress-section">
-        <div class="progress-text">
-            <span>TOEIC PROGRESS</span>
-            <span id="progress-count">0 / 0</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="menu-card">
+        <h1>TOEIC 800+ 訓練營</h1>
+        <a href="quiz.html" class="menu-btn btn-quiz">🎯 挑戰模式</a>
+        <p style="font-size: 12px; color: #7f8c8d;">(隨機抽題、記錄進度)</p>
+        
+        <a href="list.html" class="menu-btn btn-list">📖 單字清單</a>
+        <p style="font-size: 12px; color: #7f8c8d;">(瀏覽所有單字、標記星星)</p>
+        
+        <div class="subtitle">目標：突破 900 分！🔥</div>
     </div>
-
-    <div id="mode-label">TOEIC Master App</div>
-    <div class="word-box">
-        <div class="pos" id="pos-display"></div>
-        <h1 id="word-display">Loading...</h1>
-        <div id="ans-display"></div>
-    </div>
-
-    <div class="action-btns">
-        <button class="icon-btn speaker-btn" onclick="speakWord()">🔊</button>
-        <button id="star" class="icon-btn star-btn" onclick="toggleStar()">★</button>
-    </div>
-
-    <div class="button-group">
-        <button class="action primary" onclick="showAnswer()">SHOW ANSWER</button>
-        <button class="action secondary" onclick="nextWord()">NEXT WORD</button>
-    </div>
-
-    <div class="footer-tools">
-        <button class="footer-btn" onclick="toggleMode()">SWAP MODE</button>
-        <button class="footer-btn" onclick="resetProgress()">RESET</button>
-    </div>
-</div>
-
-<script>
-    let myWords = [];
-    let learnedIndexes = [];
-    let currentIndex = -1;
-    let isEnToZh = true;
-
-    function getStoredStars() { const saved = localStorage.getItem('toeic_stars'); return saved ? JSON.parse(saved) : {}; }
-    function saveStar(wordEn, isStarred) { const stars = getStoredStars(); stars[wordEn] = isStarred; localStorage.setItem('toeic_stars', JSON.stringify(stars)); }
-    function getStoredProgress() { const saved = localStorage.getItem('toeic_progress'); return saved ? JSON.parse(saved) : []; }
-    function saveProgress() { localStorage.setItem('toeic_progress', JSON.stringify(learnedIndexes)); }
-
-    async function loadWords() {
-        try {
-            const response = await fetch('words.json?v=' + Date.now());
-            const data = await response.json();
-            const starredMap = getStoredStars();
-            myWords = data.map(w => ({...w, starred: starredMap[w.en] !== undefined ? starredMap[w.en] : (w.starred || false)}));
-            learnedIndexes = getStoredProgress().filter(idx => idx < myWords.length);
-            nextWord();
-        } catch (e) { document.getElementById('word-display').innerText = "Load Error"; }
-    }
-
-    function showAnswer() { document.getElementById('main-card').classList.add('show-answer'); }
-
-    function speakWord() { 
-        if(currentIndex === -1) return;
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(myWords[currentIndex].en); 
-        msg.lang = 'en-US'; 
-        window.speechSynthesis.speak(msg); 
-    }
-
-    function nextWord() {
-        if (myWords.length === 0) return;
-        if (learnedIndexes.length >= myWords.length) {
-            alert("Congrats! Resetting progress.");
-            resetProgress();
-            return;
-        }
-        const card = document.getElementById('main-card');
-        card.classList.remove('show-answer');
-        card.classList.add('switching');
-        setTimeout(() => {
-            let unlearned = [];
-            myWords.forEach((w, i) => { if (!learnedIndexes.includes(i)) unlearned.push(i); });
-            currentIndex = unlearned[Math.floor(Math.random() * unlearned.length)];
-            learnedIndexes.push(currentIndex);
-            saveProgress();
-            updateDisplay();
-            setTimeout(() => { card.classList.remove('switching'); }, 100);
-        }, 250);
-    }
-
-    function updateDisplay() {
-        const item = myWords[currentIndex];
-        document.getElementById('progress-count').innerText = `${learnedIndexes.length} / ${myWords.length}`;
-        document.getElementById('progress-fill').style.width = `${(learnedIndexes.length / myWords.length) * 100}%`;
-        document.getElementById('pos-display').innerText = item.pos || "";
-        document.getElementById('star').classList.toggle('active', item.starred);
-        if (isEnToZh) { document.getElementById('word-display').innerText = item.en; document.getElementById('ans-display').innerText = item.zh; }
-        else { document.getElementById('word-display').innerText = item.zh; document.getElementById('ans-display').innerText = item.en; }
-    }
-
-    function toggleStar() {
-        const item = myWords[currentIndex];
-        item.starred = !item.starred;
-        document.getElementById('star').classList.toggle('active', item.starred);
-        saveStar(item.en, item.starred);
-    }
-
-    function toggleMode() { isEnToZh = !isEnToZh; updateDisplay(); document.getElementById('main-card').classList.remove('show-answer'); }
-    function resetProgress() { if (confirm("Reset?")) { learnedIndexes = []; saveProgress(); nextWord(); } }
-    loadWords();
-</script>
 </body>
 </html>
