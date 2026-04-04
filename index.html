@@ -2,68 +2,104 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TOEIC單字機">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3771/3771127.png">
     <title>高階商務單字練習</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); overflow: hidden; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            overflow: hidden; 
+        }
         
-        .card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90vw; max-width: 340px; position: relative; }
-        
-        /* 進度條區域 - 獨立在最上方 */
-        .progress-section { margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-        .progress-text { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between; font-weight: bold; }
-        .progress-bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+        /* 頂部進度條：獨立區塊，絕對不與下方重疊 */
+        .header-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        .progress-text { 
+            font-size: 11px; 
+            color: #777; 
+            margin-bottom: 6px; 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        .progress-bar { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); width: 0%; transition: width 0.5s ease; }
 
-        /* 單字顯示區 */
-        .word-box { margin: 20px 0; }
-        #mode-label { font-size: 11px; color: #bbb; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; display: block; }
-        .pos { font-size: 14px; color: #9b59b6; font-weight: bold; margin-bottom: 5px; height: 20px; }
-        #word-display { font-size: 32px; color: #2c3e50; margin: 5px 0; min-height: 45px; transition: opacity 0.2s; word-break: break-word; }
-        #ans-display { font-size: 20px; color: #3498db; min-height: 30px; opacity: 0; transition: opacity 0.2s; margin-bottom: 15px; font-weight: 500; }
+        /* 主卡片：增加外距，確保不衝撞頂部 */
+        .card { 
+            background: white; 
+            padding: 30px 25px; 
+            border-radius: 28px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            text-align: center; 
+            width: 90vw; 
+            max-width: 350px; 
+            margin-top: 60px; /* 給頂部進度條留空間 */
+        }
         
-        /* 功能按鈕區 (星星 + 喇叭) */
-        .action-btns { display: flex; justify-content: center; align-items: center; gap: 25px; margin-bottom: 20px; }
-        .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; }
+        #mode-label { font-size: 10px; color: #ccc; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .pos { font-size: 14px; color: #9b59b6; font-weight: 800; margin-bottom: 5px; height: 20px; }
+        #word-display { font-size: 32px; color: #2c3e50; margin: 10px 0; min-height: 45px; line-height: 1.2; word-break: break-word; }
+        #ans-display { font-size: 19px; color: #3498db; min-height: 28px; opacity: 0; transition: opacity 0.2s; margin-bottom: 25px; font-weight: 600; }
+        
+        /* 功能按鈕 */
+        .action-btns { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 25px; }
+        .icon-btn { cursor: pointer; border: none; background: none; outline: none; transition: transform 0.1s; padding: 0; }
         .icon-btn:active { transform: scale(0.9); }
-        
-        .star-btn { font-size: 32px; color: #ddd; padding: 0; }
+        .star-btn { font-size: 36px; color: #eee; }
         .star-btn.active { color: #f1c40f; }
-        
-        .speaker-btn { font-size: 20px; color: white; background: #3498db; border-radius: 50%; width: 45px; height: 45px; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .speaker-btn { font-size: 20px; color: white; background: #3498db; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4); }
 
         .show-answer #ans-display { opacity: 1 !important; }
         .switching #word-display, .switching #ans-display, .switching .action-btns { opacity: 0 !important; }
 
         .button-group { display: flex; flex-direction: column; gap: 12px; }
-        button.action { padding: 15px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .primary { background: #3498db; color: white; }
-        .secondary { background: #2ecc71; color: white; }
+        button.action { padding: 16px; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .primary { background: #3498db; color: white; box-shadow: 0 4px 0 #2980b9; }
+        .primary:active { transform: translateY(2px); box-shadow: 0 2px 0 #2980b9; }
+        .secondary { background: #2ecc71; color: white; box-shadow: 0 4px 0 #27ae60; }
+        .secondary:active { transform: translateY(2px); box-shadow: 0 2px 0 #27ae60; }
         
-        .footer-tools { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 10px; }
-        .footer-btn { background: none; border: none; color: #bbb; font-size: 11px; cursor: pointer; text-decoration: underline; }
+        .footer-tools { display: flex; justify-content: space-between; margin-top: 25px; border-top: 1px solid #f9f9f9; padding-top: 15px; }
+        .footer-btn { background: none; border: none; color: #ccd0d5; font-size: 11px; cursor: pointer; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-<div class="card" id="main-card">
-    <div class="progress-section">
-        <div class="progress-text">
-            <span>學習進度</span>
-            <span id="progress-count">0 / 0</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+<div class="header-progress">
+    <div class="progress-text">
+        <span>LEARNING PROGRESS</span>
+        <span id="progress-count">0 / 0</span>
     </div>
-    
-    <div id="mode-label">載入中...</div>
-    
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<div class="card" id="main-card">
+    <div id="mode-label">Mode</div>
     <div class="word-box">
         <div class="pos" id="pos-display"></div>
-        <h1 id="word-display">請稍候...</h1>
+        <h1 id="word-display">Loading...</h1>
         <div id="ans-display"></div>
     </div>
 
@@ -73,13 +109,13 @@
     </div>
 
     <div class="button-group">
-        <button class="action primary" onclick="showAnswer()">看答案</button>
-        <button class="action secondary" onclick="nextWord()">下一題</button>
+        <button class="action primary" onclick="showAnswer()">SHOW ANSWER</button>
+        <button class="action secondary" onclick="nextWord()">NEXT WORD</button>
     </div>
 
     <div class="footer-tools">
-        <button class="footer-btn" onclick="toggleMode()">切換模式</button>
-        <button class="footer-btn" onclick="resetProgress()">重置進度</button>
+        <button class="footer-btn" onclick="toggleMode()">SWAP MODE</button>
+        <button class="footer-btn" onclick="resetProgress()">RESET</button>
     </div>
 </div>
 
@@ -102,14 +138,14 @@
             myWords = data.map(w => ({...w, starred: starredMap[w.en] !== undefined ? starredMap[w.en] : (w.starred || false)}));
             learnedIndexes = getStoredProgress().filter(idx => idx < myWords.length);
             nextWord();
-        } catch (e) { document.getElementById('word-display').innerText = "載入失敗"; }
+        } catch (e) { document.getElementById('word-display').innerText = "Load Failed"; }
     }
 
     function showAnswer() { document.getElementById('main-card').classList.add('show-answer'); }
 
     function speakWord() { 
         if(currentIndex === -1) return;
-        window.speechSynthesis.cancel(); // 先停止之前的發音
+        window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(myWords[currentIndex].en); 
         msg.lang = 'en-US'; 
         window.speechSynthesis.speak(msg); 
@@ -118,7 +154,7 @@
     function nextWord() {
         if (myWords.length === 0) return;
         if (learnedIndexes.length >= myWords.length) {
-            alert("恭喜全部背完！進度將重置。");
+            alert("All done! Resetting progress.");
             resetProgress();
             return;
         }
@@ -142,7 +178,7 @@
         document.getElementById('progress-fill').style.width = `${(learnedIndexes.length / myWords.length) * 100}%`;
         document.getElementById('pos-display').innerText = item.pos || "";
         document.getElementById('star').classList.toggle('active', item.starred);
-        document.getElementById('mode-label').innerText = isEnToZh ? "英翻中模式" : "中翻英模式";
+        document.getElementById('mode-label').innerText = isEnToZh ? "English → Chinese" : "Chinese → English";
         if (isEnToZh) { document.getElementById('word-display').innerText = item.en; document.getElementById('ans-display').innerText = item.zh; }
         else { document.getElementById('word-display').innerText = item.zh; document.getElementById('ans-display').innerText = item.en; }
     }
@@ -155,7 +191,7 @@
     }
 
     function toggleMode() { isEnToZh = !isEnToZh; updateDisplay(); document.getElementById('main-card').classList.remove('show-answer'); }
-    function resetProgress() { if (confirm("確定要重置進度嗎？")) { learnedIndexes = []; saveProgress(); nextWord(); } }
+    function resetProgress() { if (confirm("Reset all progress?")) { learnedIndexes = []; saveProgress(); nextWord(); } }
     loadWords();
 </script>
 </body>
